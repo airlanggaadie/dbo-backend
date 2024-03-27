@@ -1,11 +1,12 @@
 package utils
 
+import "golang.org/x/crypto/bcrypt"
+
 func HashPassword(password string) (string, error) {
-	// TODO: handle hash password
-	return "hashed" + password, nil
+	bytes, err := bcrypt.GenerateFromPassword([]byte(password), 14)
+	return string(bytes), err
 }
 
 func VerifyPassword(password string, hashPassword string) error {
-	// TODO: handle verify password
-	return nil
+	return bcrypt.CompareHashAndPassword([]byte(hashPassword), []byte(password))
 }

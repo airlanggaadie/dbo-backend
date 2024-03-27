@@ -50,7 +50,7 @@ func (c *configuration) migrate() *configuration {
 		`COMMENT ON COLUMN "users".username IS 'username for authentication';`,
 		`CREATE TABLE IF NOT EXISTS "user_password" (
 			user_id             UUID NOT NULL UNIQUE,
-			password			VARCHAR(50) NOT NULL,
+			password			VARCHAR(250) NOT NULL,
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES "users" (id)
@@ -103,6 +103,42 @@ func (c *configuration) migrate() *configuration {
 	if err := tx.Commit(); err != nil {
 		tx.Rollback()
 		log.Fatalf("[configuration][migrate] commit error: %v", err)
+	}
+
+	return c
+}
+
+func (c *configuration) seeder() *configuration {
+	fmt.Println("running seeder...")
+	ctx, cancel := context.WithTimeout(context.Background(), 10*time.Second)
+	defer cancel()
+
+	tx, err := c.DB.BeginTx(ctx, &sql.TxOptions{Isolation: sql.LevelSerializable, ReadOnly: false})
+	if err != nil {
+		log.Fatalf("[configuration][seeder] begin transaction error: %v", err)
+	}
+
+	queries := []string{
+		// username admin
+		`INSERT INTO users (id, username, name) VALUES ('15cbe561-540d-4b38-ae68-b9e3302f0eee', 'admin', 'admin') ON CONFLICT (username) DO NOTHING;`,
+		// password verysecret
+		`INSERT INTO user_password (user_id, password) VALUES ('15cbe561-540d-4b38-ae68-b9e3302f0eee', '$2a$14$q95pl/qXHD5XweOqNDEkZ.doZ2vHONiXk/AtuggZMOawpwoyxcXeq') ON CONFLICT (user_id) DO NOTHING;`,
+	}
+
+	for i, query := range queries {
+		_, err = tx.ExecContext(
+			ctx,
+			query,
+		)
+		if err != nil {
+			tx.Rollback()
+			log.Fatalf("[configuration][seeder] execution [%d] error: %v", i, err)
+		}
+	}
+
+	if err := tx.Commit(); err != nil {
+		tx.Rollback()
+		log.Fatalf("[configuration][seeder] commit error: %v", err)
 	}
 
 	return c
