@@ -4,6 +4,7 @@
   - [HOW TO USE](#how-to-use)
   - [ERD](#erd)
   - [ADVANCED CONFIGURATION](#advanced-configuration)
+  - [API DOCUMENTATION](#api-documentation)
 
 ## HOW TO USE
 
@@ -30,3 +31,7 @@ Set environment variables on your operating system (or docker-compose.yml servic
   - ENVIRONMENT: the application environment, default is `development`.
   - PORT: application running port number, default is `3000`.
   - APP_TZ: application time zone, default is `Asia/Jakarta`.
+
+## API DOCUMENTATION
+
+[here...](./docs/api-docs.md)
