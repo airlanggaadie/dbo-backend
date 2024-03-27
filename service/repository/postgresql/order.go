@@ -6,7 +6,6 @@ import (
 	"dbo/assignment-test/model"
 	"dbo/assignment-test/service"
 	"fmt"
-	"log"
 	"strings"
 
 	"github.com/google/uuid"
@@ -180,9 +179,6 @@ func (o orderRepository) InsertOrder(ctx context.Context, order model.OrderDetai
 		return model.OrderDetail{}, fmt.Errorf("[postgresql][InsertOrder] execution error: %w", err)
 	}
 
-	log.Println(order)
-	log.Println(order.Items)
-
 	var (
 		queryOrderItemBuilder strings.Builder
 		queryOrderItemArgs    []interface{}
@@ -190,7 +186,6 @@ func (o orderRepository) InsertOrder(ctx context.Context, order model.OrderDetai
 	queryOrderItemBuilder.WriteString(queryInsertOrderItem)
 	paramCount := 0
 	for i, item := range order.Items {
-		log.Println("itemm: ", item)
 		param1 := paramCount + 1
 		param2 := param1 + 1
 		param3 := param2 + 1
@@ -207,8 +202,6 @@ func (o orderRepository) InsertOrder(ctx context.Context, order model.OrderDetai
 		queryOrderItemArgs = append(queryOrderItemArgs, item.Id, item.OrderId, item.Code, item.Name, item.Quantity, item.UnitPrice, item.TotalPrice)
 	}
 
-	log.Println(queryOrderItemBuilder.String())
-	log.Println(queryOrderItemArgs)
 	_, err = tx.ExecContext(ctx, queryOrderItemBuilder.String(), queryOrderItemArgs...)
 	if err != nil {
 		return model.OrderDetail{}, fmt.Errorf("[postgresql][InsertOrder] items execution error: %w", err)

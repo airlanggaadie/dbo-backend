@@ -7,7 +7,6 @@ import (
 	"dbo/assignment-test/service"
 	"errors"
 	"fmt"
-	"log"
 
 	"github.com/google/uuid"
 )
@@ -24,7 +23,6 @@ type order struct {
 
 // AddNewOrder implements service.OrderUsecase.
 func (o order) AddNewOrder(ctx context.Context, request model.NewOrderRequest) (model.OrderDetailResponse, error) {
-	log.Println(request)
 	newOrderDetail, err := model.NewOrder(request)
 	if err != nil {
 		return model.OrderDetailResponse{}, fmt.Errorf("[usecase][AddNewOrder] new order error: %v", err)
