@@ -12,13 +12,13 @@ import (
 )
 
 func (h Handler) listUser(c *gin.Context) {
-	queryPage := c.Query("page")
-
 	var (
 		page  = 0
 		limit = 0
 		err   error
 	)
+
+	queryPage := c.Query("page")
 	if queryPage != "" {
 		page, err = strconv.Atoi(queryPage)
 		if err != nil {

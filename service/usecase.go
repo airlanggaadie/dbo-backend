@@ -8,7 +8,10 @@ import (
 )
 
 type AuthUsecase interface {
+	// Login return token authorization
 	Login(ctx context.Context, username string, password string) (model.LoginResponse, error)
+
+	// Report return login report
 	Report(ctx context.Context, page, limit int) (model.LoginReport, error)
 }
 

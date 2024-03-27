@@ -3,14 +3,10 @@ package service
 import (
 	"context"
 	"dbo/assignment-test/model"
+	"time"
 
 	"github.com/google/uuid"
 )
-
-type AuthRepository interface {
-	InsertLoginData(ctx context.Context, userId uuid.UUID) error
-	GetLoginData(ctx context.Context, offset, limit int) ([]model.Auth, error)
-}
 
 type UserRepository interface {
 	// GetUsersPaginate return a paginated list of users
@@ -18,6 +14,12 @@ type UserRepository interface {
 
 	// GetUser returns a single user
 	GetUser(ctx context.Context, id uuid.UUID) (model.User, error)
+
+	// GetUserByUsername returns a single user
+	GetUserByUsername(ctx context.Context, username string) (model.User, error)
+
+	// GetPasswordByUserId returns a hashed password
+	GetPasswordByUserId(ctx context.Context, userId uuid.UUID) (string, error)
 
 	// GetUserByName returns a list of users that match with the given searchName
 	GetUserByName(ctx context.Context, searchName string) ([]model.SimpleUser, error)
@@ -30,6 +32,11 @@ type UserRepository interface {
 
 	// DeleteUser deletes a user from the database
 	DeleteUser(ctx context.Context, id uuid.UUID) error
+
+	// InsertUserLoginHistory inserts a new user login history in the database
+	InsertUserLoginHistory(ctx context.Context, userId uuid.UUID) error
+
+	GetUserLoginHistoryPaginate(ctx context.Context, offset, limit int) ([]model.UserLoginHistoryDetail, int64, error)
 }
 
 type OrderRepository interface {
@@ -47,4 +54,12 @@ type OrderRepository interface {
 
 	// DeleteOrder deletes a order from the database
 	DeleteOrder(ctx context.Context, id uuid.UUID) error
+}
+
+type JwtRepository interface {
+	// Generate a JWT token
+	Generate(userId uuid.UUID, additionalClaims map[string]string, expiry time.Duration) (string, error)
+
+	// Verify a JWT token
+	Verify(token string) (uuid.UUID, error)
 }

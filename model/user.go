@@ -71,6 +71,12 @@ type UserLoginHistory struct {
 	CreatedAt time.Time `json:"created_at"`
 }
 
+type UserLoginHistoryDetail struct {
+	UserId    uuid.UUID `json:"user_id"`
+	Username  string    `json:"username"`
+	LoginTime time.Time `json:"login_time"`
+}
+
 type ListUserPaginateResponse struct {
 	Data  []User `json:"data"`
 	Total int64  `json:"total"`

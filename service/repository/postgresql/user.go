@@ -20,6 +20,84 @@ type userRepository struct {
 	DB *sql.DB
 }
 
+// GetUserLoginHistoryPaginate implements service.UserRepository.
+func (u userRepository) GetUserLoginHistoryPaginate(ctx context.Context, offset int, limit int) ([]model.UserLoginHistoryDetail, int64, error) {
+	query, err := u.DB.QueryContext(ctx, queryGetUserLoginHistoryDetail, offset, limit)
+	if err != nil {
+		return nil, 0, fmt.Errorf("[postgresql][GetUserLoginHistoryPaginate] error query: %v", err)
+	}
+	defer query.Close()
+
+	var users []model.UserLoginHistoryDetail
+	for query.Next() {
+		var user model.UserLoginHistoryDetail
+		if err := query.Scan(
+			&user.UserId,
+			&user.Username,
+			&user.LoginTime,
+		); err != nil {
+			return nil, 0, fmt.Errorf("[postgresql][GetUserLoginHistoryPaginate] error scan: %v", err)
+		}
+
+		users = append(users, user)
+	}
+
+	var total int64
+	if err := u.DB.QueryRowContext(ctx, queryGetUserLoginHistoryCount).Scan(&total); err != nil {
+		return nil, 0, fmt.Errorf("[postgresql][GetUserLoginHistoryPaginate] error count: %v", err)
+	}
+
+	return users, total, nil
+}
+
+// InsertUserLoginHistory implements service.UserRepository.
+func (u userRepository) InsertUserLoginHistory(ctx context.Context, userId uuid.UUID) error {
+	tx, err := u.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("[postgresql][InsertUserLoginHistory] begin transaction error: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, queryInsertUserLoginHistory, userId)
+	if err != nil {
+		return fmt.Errorf("[postgresql][InsertUserLoginHistory] execution error: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("[postgresql][InsertUserLoginHistory] commit error: %w", err)
+	}
+
+	return nil
+}
+
+// GetPasswordByUserId implements service.UserRepository.
+func (u userRepository) GetPasswordByUserId(ctx context.Context, userId uuid.UUID) (string, error) {
+	var hashedPassword string
+	if err := u.DB.QueryRowContext(ctx, queryGetPasswordByUserId, userId).Scan(
+		&hashedPassword,
+	); err != nil {
+		return "", fmt.Errorf("[postgresql][GetPasswordByUserId] error query: %w", err)
+	}
+
+	return hashedPassword, nil
+}
+
+// GetUserByUsername implements service.UserRepository.
+func (u userRepository) GetUserByUsername(ctx context.Context, username string) (model.User, error) {
+	var user model.User
+	if err := u.DB.QueryRowContext(ctx, queryGetUserByUsername, username).Scan(
+		&user.Id,
+		&user.Username,
+		&user.Name,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	); err != nil {
+		return user, fmt.Errorf("[postgresql][GetUserByUsername] error query: %w", err)
+	}
+
+	return user, nil
+}
+
 // GetUserByName implements service.UserRepository.
 func (u userRepository) GetUserByName(ctx context.Context, searchName string) ([]model.SimpleUser, error) {
 	var users []model.SimpleUser

@@ -5,7 +5,7 @@ func HashPassword(password string) (string, error) {
 	return "hashed" + password, nil
 }
 
-func VerifyPassword(password string, hashPassword string) (bool, error) {
+func VerifyPassword(password string, hashPassword string) error {
 	// TODO: handle verify password
-	return true, nil
+	return nil
 }

@@ -1,13 +1,15 @@
 package model
 
-type Auth struct {
-	// TODO: fill this field
+type LoginRequest struct {
+	Username string `json:"username"`
+	Password string `json:"password"`
 }
 
 type LoginResponse struct {
-	// TODO: fill this field
+	Token string `json:"token"`
 }
 
 type LoginReport struct {
-	// TODO: fill this field
+	Data  []UserLoginHistoryDetail `json:"data"`
+	Total int64                    `json:"total"`
 }
