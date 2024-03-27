@@ -19,8 +19,11 @@ type UserRepository interface {
 	// GetUser returns a single user
 	GetUser(ctx context.Context, id uuid.UUID) (model.User, error)
 
+	// GetUserByName returns a list of users that match with the given searchName
+	GetUserByName(ctx context.Context, searchName string) ([]model.SimpleUser, error)
+
 	// InsertUser inserts a new user in the database
-	InsertUser(ctx context.Context, User model.User) (model.User, error)
+	InsertUser(ctx context.Context, user model.User, userPassword model.UserPassword) (model.User, error)
 
 	// UpdateUser updates an existing user in the database
 	UpdateUser(ctx context.Context, newUser model.User) (model.User, error)

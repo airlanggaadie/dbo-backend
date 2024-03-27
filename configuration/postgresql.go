@@ -40,25 +40,25 @@ func (c *configuration) migrate() *configuration {
 	}
 
 	queries := []string{
-		`CREATE TABLE IF NOT EXISTS "user" (
+		`CREATE TABLE IF NOT EXISTS "users" (
 			id                  UUID PRIMARY KEY NOT NULL,
 			username            VARCHAR(20) NOT NULL UNIQUE,
 			name				VARCHAR(50) NOT NULL,
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
-		`COMMENT ON COLUMN "user".username IS 'username for authentication';`,
+		`COMMENT ON COLUMN "users".username IS 'username for authentication';`,
 		`CREATE TABLE IF NOT EXISTS "user_password" (
 			user_id             UUID NOT NULL UNIQUE,
 			password			VARCHAR(50) NOT NULL,
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (user_id) REFERENCES "user" (id)
+			FOREIGN KEY (user_id) REFERENCES "users" (id)
 		);`,
 		`CREATE TABLE IF NOT EXISTS "user_login_history" (
 			user_id             UUID NOT NULL,
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (user_id) REFERENCES "user" (id)
+			FOREIGN KEY (user_id) REFERENCES "users" (id)
 		);`,
 		`CREATE TABLE IF NOT EXISTS "order" (
 			id             		UUID PRIMARY KEY NOT NULL,

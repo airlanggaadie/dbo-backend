@@ -20,7 +20,7 @@ type UserUsecase interface {
 	GetUser(ctx context.Context, id uuid.UUID) (model.UserDetailResponse, error)
 
 	// GetUser returns a list of user.
-	SearchUser(ctx context.Context, keyword string) (model.UserListResponse, error)
+	SearchUser(ctx context.Context, keyword string) (model.UserListResponse[model.SimpleUser], error)
 
 	// AddNewUser adds a new user to the list of users
 	AddNewUser(ctx context.Context, request model.NewUserRequest) (model.UserDetailResponse, error)

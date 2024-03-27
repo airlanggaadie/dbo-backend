@@ -60,7 +60,7 @@ func (c *configuration) Stop() {
 	<-quit
 
 	fmt.Println("stopping apps...")
-	ctx, cancel := context.WithTimeout(context.Background(), 5*time.Second)
+	ctx, cancel := context.WithTimeout(context.Background(), 3*time.Second)
 	defer cancel()
 
 	if err := c.Server.Shutdown(ctx); err != nil {
@@ -68,7 +68,7 @@ func (c *configuration) Stop() {
 	}
 
 	<-ctx.Done()
-	log.Println("[configuration][Stop] timeout of 10 seconds.")
+	log.Println("[configuration][Stop] timeout of 3 seconds.")
 
 	log.Println("Server exiting")
 }

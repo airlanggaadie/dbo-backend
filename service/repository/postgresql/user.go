@@ -5,6 +5,7 @@ import (
 	"database/sql"
 	"dbo/assignment-test/model"
 	"dbo/assignment-test/service"
+	"fmt"
 
 	"github.com/google/uuid"
 )
@@ -19,27 +20,165 @@ type userRepository struct {
 	DB *sql.DB
 }
 
+// GetUserByName implements service.UserRepository.
+func (u userRepository) GetUserByName(ctx context.Context, searchName string) ([]model.SimpleUser, error) {
+	var users []model.SimpleUser
+	rows, err := u.DB.QueryContext(ctx, queryGetSimpleUsersByName, "%"+searchName+"%")
+	if err != nil {
+		return nil, fmt.Errorf("[postgresql][GetUserByName] error query: %v", err)
+	}
+	defer rows.Close()
+
+	for rows.Next() {
+		var user model.SimpleUser
+		if err := rows.Scan(
+			&user.Id,
+			&user.Name,
+		); err != nil {
+			return nil, fmt.Errorf("[postgresql][GetUserByName] error scan: %v", err)
+		}
+		users = append(users, user)
+	}
+
+	return users, nil
+}
+
 // DeleteUser implements service.UserRepository.
 func (u userRepository) DeleteUser(ctx context.Context, id uuid.UUID) error {
-	panic("unimplemented")
+	tx, err := u.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return fmt.Errorf("[postgresql][DeleteUser] begin transaction error: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, queryDeleteUserPassword, id)
+	if err != nil {
+		return fmt.Errorf("[postgresql][DeleteUser] execution delete password error: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, queryDeleteUser, id)
+	if err != nil {
+		return fmt.Errorf("[postgresql][DeleteUser] execution delete user error: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return fmt.Errorf("[postgresql][DeleteUser] commit error: %w", err)
+	}
+
+	return nil
 }
 
 // GetUser implements service.UserRepository.
 func (u userRepository) GetUser(ctx context.Context, id uuid.UUID) (model.User, error) {
-	panic("unimplemented")
+	var user model.User
+	if err := u.DB.QueryRowContext(ctx, queryGetUserById, id).Scan(
+		&user.Id,
+		&user.Username,
+		&user.Name,
+		&user.CreatedAt,
+		&user.UpdatedAt,
+	); err != nil {
+		return user, fmt.Errorf("[postgresql][GetUser] error query: %w", err)
+	}
+
+	return user, nil
 }
 
 // GetUsersPaginate implements service.UserRepository.
 func (u userRepository) GetUsersPaginate(ctx context.Context, search string, offset int, limit int) ([]model.User, int64, error) {
-	panic("unimplemented")
+	var (
+		query *sql.Rows
+		err   error
+	)
+
+	if search == "" {
+		query, err = u.DB.QueryContext(ctx, queryGetUsersPaginate, offset, limit)
+	} else {
+		query, err = u.DB.QueryContext(ctx, queryGetUsersByNamePaginate, "%"+search+"%", offset, limit)
+	}
+
+	if err != nil {
+		return nil, 0, fmt.Errorf("[postgresql][GetUsersPaginate] error query: %v", err)
+	}
+	defer query.Close()
+
+	var users []model.User
+	for query.Next() {
+		var user model.User
+		if err := query.Scan(
+			&user.Id,
+			&user.Username,
+			&user.Name,
+			&user.CreatedAt,
+			&user.UpdatedAt,
+		); err != nil {
+			return nil, 0, fmt.Errorf("[postgresql][GetUsersPaginate] error scan: %v", err)
+		}
+
+		users = append(users, user)
+	}
+
+	var total int64
+	if search != "" {
+		if err := u.DB.QueryRowContext(ctx, queryGetUsersCountByName, "%"+search+"%").Scan(&total); err != nil {
+			return nil, 0, fmt.Errorf("[postgresql][GetUsersPaginate] error count: %v", err)
+		}
+	} else {
+		if err := u.DB.QueryRowContext(ctx, queryGetUsersCount).Scan(&total); err != nil {
+			return nil, 0, fmt.Errorf("[postgresql][GetUsersPaginate] error count: %v", err)
+		}
+	}
+
+	return users, total, nil
 }
 
 // InsertUser implements service.UserRepository.
-func (u userRepository) InsertUser(ctx context.Context, User model.User) (model.User, error) {
-	panic("unimplemented")
+func (u userRepository) InsertUser(ctx context.Context, user model.User, userPassword model.UserPassword) (model.User, error) {
+	tx, err := u.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][InsertUser] begin transaction error: %w", err)
+	}
+	defer tx.Rollback()
+
+	_, err = tx.ExecContext(ctx, queryInsertUser, user.Id, user.Username, user.Name)
+	if err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][InsertUser] execution error: %w", err)
+	}
+
+	_, err = tx.ExecContext(ctx, queryInsertUserPassword, user.Id, userPassword.Password)
+	if err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][InsertUser] password execution error: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][InsertUser] commit error: %w", err)
+	}
+
+	return user, nil
 }
 
 // UpdateUser implements service.UserRepository.
 func (u userRepository) UpdateUser(ctx context.Context, newUser model.User) (model.User, error) {
-	panic("unimplemented")
+	tx, err := u.DB.BeginTx(ctx, &sql.TxOptions{})
+	if err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][UpdateUser] begin transaction error: %w", err)
+	}
+	defer tx.Rollback()
+
+	var updatedUser model.User
+	if err := tx.QueryRowContext(ctx, queryUpdateUser, newUser.Id, newUser.Username, newUser.Name).Scan(
+		&updatedUser.Id,
+		&updatedUser.Username,
+		&updatedUser.Name,
+		&updatedUser.CreatedAt,
+		&updatedUser.UpdatedAt,
+	); err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][UpdateUser] execution error: %w", err)
+	}
+
+	if err := tx.Commit(); err != nil {
+		return model.User{}, fmt.Errorf("[postgresql][UpdateUser] commit error: %w", err)
+	}
+
+	return updatedUser, nil
 }
