@@ -28,6 +28,7 @@ func Init() *configuration {
 		initTimezone().
 		initPostgreSql().
 		migrate().
+		seeder().
 		initServer().
 		initService()
 }

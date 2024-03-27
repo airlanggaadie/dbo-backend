@@ -30,7 +30,7 @@ func (c *configuration) initService() *configuration {
 	userUsecase := usecase.NewUserUsecase(userRepository)
 	orderUsecase := usecase.NewOrderUsecase(orderRepository)
 
-	handler.NewHandler(c.Router, c.DB, authUsecase, userUsecase, orderUsecase)
+	handler.NewHandler(c.Router, c.DB, authUsecase, userUsecase, orderUsecase, jwtRepository)
 
 	return c
 }
