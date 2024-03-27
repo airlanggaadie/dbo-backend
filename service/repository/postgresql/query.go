@@ -23,7 +23,7 @@ const (
 	queryGetOrdersCount           = `SELECT count(*) FROM orders;`
 	queryGetOrdersCountByCode     = `SELECT count(*) FROM orders WHERE code ILIKE $1;`
 	queryGetOrderById             = `SELECT id, code, buyer_name, item_quantity, total_price, created_at, updated_at FROM orders WHERE id = $1;`
-	queryGetOrderItemByOrderId    = `SELECT id, order_id, code, name, quantity, unit_price, total_price, created_at, updated_at FROM orders WHERE order_id = $1;`
+	queryGetOrderItemByOrderId    = `SELECT id, order_id, code, name, quantity, unit_price, total_price, created_at, updated_at FROM order_item WHERE order_id = $1;`
 	queryDeleteOrder              = `DELETE FROM orders WHERE id = $1;`
 	queryDeleteOrderItemByOrderId = `DELETE FROM order_item WHERE order_id = $1;`
 	queryGetSimpleOrdersByName    = `SELECT id, code FROM orders WHERE code ILIKE $1 LIMIT 10`
