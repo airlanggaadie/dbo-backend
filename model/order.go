@@ -18,7 +18,7 @@ type Order struct {
 }
 
 func NewOrder(order NewOrderRequest) (OrderDetail, error) {
-	id, err := uuid.NewUUID()
+	id, err := uuid.NewRandom()
 	if err != nil {
 		return OrderDetail{}, fmt.Errorf("[model][NewOrder] uuid order error: %v", err)
 	}
@@ -27,7 +27,7 @@ func NewOrder(order NewOrderRequest) (OrderDetail, error) {
 	var totalPrice int64 = 0
 	var items []OrderItem
 	for _, item := range order.Items {
-		itemId, err := uuid.NewUUID()
+		itemId, err := uuid.NewRandom()
 		if err != nil {
 			return OrderDetail{}, fmt.Errorf("[model][NewOrder] uuid item error: %v", err)
 		}

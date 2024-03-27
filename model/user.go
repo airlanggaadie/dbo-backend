@@ -17,7 +17,7 @@ type User struct {
 }
 
 func NewUser(request NewUserRequest) (User, error) {
-	id, err := uuid.NewUUID()
+	id, err := uuid.NewRandom()
 	if err != nil {
 		return User{}, fmt.Errorf("[model][NewUser] uuid error: %v", err)
 	}
