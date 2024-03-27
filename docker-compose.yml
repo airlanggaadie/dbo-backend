@@ -1,0 +1,34 @@
+services:
+  api:
+    build: .
+    ports:
+      - 3000:3000
+    environment:
+      ENVIRONMENT: development
+      PORT: 3000
+      APP_TZ: Asia/Jakarta
+      DATABASE_URL: postgres://postgres:postgres@db:5432/dbo?sslmode=disable
+    healthcheck:
+      test: curl -f http://localhost:3000/healthz || exit 1
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+  db:
+    image: postgres:15.3-alpine
+    ports:
+      - 5432:5432
+    restart: unless-stopped
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: postgres
+      POSTGRES_DB: dbo
+      TZ: Asia/Jakarta
+      TZDATA: Asia/Jakarta
+      PGTZ: Asia/Jakarta
+    healthcheck:
+      test: pg_isready -U postgres
+      interval: 10s
+      timeout: 10s
+      retries: 10
+      start_period: 30s
