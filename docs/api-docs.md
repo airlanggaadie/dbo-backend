@@ -402,18 +402,6 @@ response:
             "id": "uuid-order-id-1",
             "buyer_name": "buyer",
             "code": "order-short-number",
-            "items": [
-                {
-                    "id": "uuid-item-1",
-                    "code": "k-001",
-                    "name": "kursi",
-                    "quantity": 2,
-                    "unit_price": 300000,
-                    "sub_total": 600000,
-                    "created_at": "2024-03-03T00:00:00Z",
-                    "updated_at": "2024-03-03T00:00:00Z"
-                }
-            ],
             "total_item": 2,
             "total_price": 600000,
             "created_at": "2024-03-03T00:00:00Z",
@@ -620,15 +608,6 @@ body: `json`
 ```jsonc
 {
     "buyer_name": "buyer",          // required, string
-    "items": [
-        {
-            "id": "uuid-item-1",    // required, string uuid
-            "code": "k-001",        // required, string
-            "name": "kursi",        // required, string
-            "quantity": 2,          // required, numeric
-            "price": 300000         // unit price, required, numbric
-        }
-    ]
 }
 ```
 

@@ -60,7 +60,7 @@ func (c *configuration) migrate() *configuration {
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			FOREIGN KEY (user_id) REFERENCES "users" (id)
 		);`,
-		`CREATE TABLE IF NOT EXISTS "order" (
+		`CREATE TABLE IF NOT EXISTS "orders" (
 			id             		UUID PRIMARY KEY NOT NULL,
 			code				VARCHAR(20) NOT NULL,
 			buyer_name			VARCHAR(50) NOT NULL,
@@ -69,9 +69,9 @@ func (c *configuration) migrate() *configuration {
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at			TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP
 		);`,
-		`COMMENT ON COLUMN "order".code IS 'order number based on operational';`,
-		`COMMENT ON COLUMN "order".item_quantity IS 'total item quantity in one order';`,
-		`COMMENT ON COLUMN "order".total_price IS 'total price for order';`,
+		`COMMENT ON COLUMN "orders".code IS 'order number based on operational';`,
+		`COMMENT ON COLUMN "orders".item_quantity IS 'total item quantity in one order';`,
+		`COMMENT ON COLUMN "orders".total_price IS 'total price for order';`,
 		`CREATE TABLE IF NOT EXISTS "order_item" (
 			id             		UUID PRIMARY KEY NOT NULL,
 			order_id			UUID NOT NULL,
@@ -82,7 +82,7 @@ func (c *configuration) migrate() *configuration {
 			total_price			BIGINT NOT NULL,
 			created_at          TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
 			updated_at			TIMESTAMP NOT NULL DEFAULT CURRENT_TIMESTAMP,
-			FOREIGN KEY (order_id) REFERENCES "order" (id)
+			FOREIGN KEY (order_id) REFERENCES "orders" (id)
 		);`,
 		`COMMENT ON COLUMN "order_item".code IS 'item code';`,
 		`COMMENT ON COLUMN "order_item".unit_price IS 'price per unit';`,

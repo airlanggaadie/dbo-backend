@@ -2,15 +2,47 @@ package handler
 
 import (
 	"dbo/assignment-test/model"
+	"encoding/json"
+	"errors"
 	"net/http"
+	"strconv"
 
 	"github.com/gin-gonic/gin"
 	"github.com/google/uuid"
 )
 
 func (h Handler) listOrder(c *gin.Context) {
-	// TODO: prepare query param and implement to parameters
-	response, err := h.orderUsecase.GetOrdersPaginate(c.Request.Context(), "", 0, 0)
+	var (
+		page  = 0
+		limit = 0
+		err   error
+	)
+
+	queryPage := c.Query("page")
+	if queryPage != "" {
+		page, err = strconv.Atoi(queryPage)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"message": "page is not a number",
+			})
+			return
+		}
+	}
+
+	queryLimit := c.Query("limit")
+	if queryLimit != "" {
+		limit, err = strconv.Atoi(queryLimit)
+		if err != nil {
+			c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+				"message": "query limit is not a number",
+			})
+			return
+		}
+	}
+
+	search := c.Query("q")
+
+	response, err := h.orderUsecase.GetOrdersPaginate(c.Request.Context(), search, page, limit)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -20,9 +52,31 @@ func (h Handler) listOrder(c *gin.Context) {
 }
 
 func (h Handler) orderDetail(c *gin.Context) {
-	// TODO: prepare url param
-	response, err := h.orderUsecase.GetOrder(c.Request.Context(), uuid.New())
+	orderId := c.Param("id")
+	if orderId == "" {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"message": "not found",
+		})
+		return
+	}
+
+	orderUUID, err := uuid.Parse(orderId)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "user id is not valid",
+		})
+		return
+	}
+
+	response, err := h.orderUsecase.GetOrder(c.Request.Context(), orderUUID)
+	if err != nil {
+		if errors.Is(err, model.ErrNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+				"message": "order not found",
+			})
+			return
+		}
+
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}
@@ -31,8 +85,9 @@ func (h Handler) orderDetail(c *gin.Context) {
 }
 
 func (h Handler) orderSearch(c *gin.Context) {
-	// TODO: prepare query param and implement to parameters
-	response, err := h.orderUsecase.SearchOrder(c.Request.Context(), "")
+	search := c.Query("q")
+
+	response, err := h.orderUsecase.SearchOrder(c.Request.Context(), search)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -42,8 +97,16 @@ func (h Handler) orderSearch(c *gin.Context) {
 }
 
 func (h Handler) addNewOrder(c *gin.Context) {
-	// TODO: prepare body and implement to parameters
-	response, err := h.orderUsecase.AddNewOrder(c.Request.Context(), model.NewOrderRequest{})
+	var body model.NewOrderRequest
+	err := json.NewDecoder(c.Request.Body).Decode(&body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid payload",
+		})
+		return
+	}
+
+	response, err := h.orderUsecase.AddNewOrder(c.Request.Context(), body)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -53,8 +116,32 @@ func (h Handler) addNewOrder(c *gin.Context) {
 }
 
 func (h Handler) updateOrder(c *gin.Context) {
-	// TODO: prepare url param and body then implement to parameters
-	response, err := h.orderUsecase.UpdateOrder(c.Request.Context(), uuid.New(), model.NewOrderRequest{})
+	orderId := c.Param("id")
+	if orderId == "" {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"message": "not found",
+		})
+		return
+	}
+
+	orderUUID, err := uuid.Parse(orderId)
+	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "user id is not valid",
+		})
+		return
+	}
+
+	var body model.UpdateOrderRequest
+	err = json.NewDecoder(c.Request.Body).Decode(&body)
+	if err != nil {
+		c.JSON(http.StatusBadRequest, gin.H{
+			"message": "invalid payload",
+		})
+		return
+	}
+
+	response, err := h.orderUsecase.UpdateOrder(c.Request.Context(), orderUUID, body.BuyerName)
 	if err != nil {
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
@@ -64,9 +151,31 @@ func (h Handler) updateOrder(c *gin.Context) {
 }
 
 func (h Handler) deleteOrder(c *gin.Context) {
-	// TODO: prepare url param then implement to parameters
-	err := h.orderUsecase.DeleteOrder(c.Request.Context(), uuid.New())
+	orderId := c.Param("id")
+	if orderId == "" {
+		c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+			"message": "not found",
+		})
+		return
+	}
+
+	orderUUID, err := uuid.Parse(orderId)
 	if err != nil {
+		c.AbortWithStatusJSON(http.StatusBadRequest, gin.H{
+			"message": "user id is not valid",
+		})
+		return
+	}
+
+	err = h.orderUsecase.DeleteOrder(c.Request.Context(), orderUUID)
+	if err != nil {
+		if errors.Is(err, model.ErrNotFound) {
+			c.AbortWithStatusJSON(http.StatusNotFound, gin.H{
+				"message": "order not found",
+			})
+			return
+		}
+
 		c.AbortWithError(http.StatusInternalServerError, err)
 		return
 	}

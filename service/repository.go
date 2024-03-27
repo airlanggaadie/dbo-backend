@@ -44,13 +44,15 @@ type OrderRepository interface {
 	GetOrdersPaginate(ctx context.Context, search string, offset, limit int) ([]model.Order, int64, error)
 
 	// GetOrder returns a single order
-	GetOrder(ctx context.Context, id uuid.UUID) (model.Order, error)
+	GetOrder(ctx context.Context, id uuid.UUID) (model.OrderDetail, error)
+
+	GetOrderByOrderNumber(ctx context.Context, code string) ([]model.SimpleOrder, error)
 
 	// InsertOrder inserts a new order in the database
-	InsertOrder(ctx context.Context, Order model.Order) (model.Order, error)
+	InsertOrder(ctx context.Context, order model.OrderDetail) (model.OrderDetail, error)
 
 	// UpdateOrder updates an existing order in the database
-	UpdateOrder(ctx context.Context, newOrder model.Order) (model.Order, error)
+	UpdateOrder(ctx context.Context, id uuid.UUID, buyerName string) error
 
 	// DeleteOrder deletes a order from the database
 	DeleteOrder(ctx context.Context, id uuid.UUID) error

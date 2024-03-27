@@ -49,7 +49,7 @@ type OrderUsecase interface {
 	AddNewOrder(ctx context.Context, request model.NewOrderRequest) (model.OrderDetailResponse, error)
 
 	// UpdateOrder updates an existing order in the database. it will return [ErrNotFound] when the order is not exist in the database
-	UpdateOrder(ctx context.Context, id uuid.UUID, request model.NewOrderRequest) (model.OrderDetailResponse, error)
+	UpdateOrder(ctx context.Context, id uuid.UUID, buyerName string) (model.OrderDetailResponse, error)
 
 	// DeleteOrder deletes a order from the database. it will return [ErrNotFound] when the order is not exist in the database
 	DeleteOrder(ctx context.Context, id uuid.UUID) error
