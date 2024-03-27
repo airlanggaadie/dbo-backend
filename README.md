@@ -11,7 +11,6 @@
 - Run PostgreSQL with docker: `docker compose up -d db`
 - Run main program: `go run .` and check out the [API Documentation](#api-documentation)
 - Run main program with docker: `docker compose up -d api`
-- Run unit tests: `go test -cover ./...`
 
 ## ERD
 
